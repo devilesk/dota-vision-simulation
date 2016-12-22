@@ -2,7 +2,7 @@
   "name": "dota-vision-simulation",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/vision-simulation.js",
   "scripts": {
     "browserify": "browserify src/app.js > www/bundle.js",
     "uglify": "uglifyjs www/bundle.js > www/bundle.min.js",
