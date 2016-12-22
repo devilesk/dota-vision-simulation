@@ -5,16 +5,30 @@
   "main": "src/vision-simulation.js",
   "scripts": {
     "browserify": "browserify src/app.js > www/bundle.js",
-    "uglify": "uglifyjs --compress --mangle -- www/bundle.js > www/bundle.min.js",
+    "uglify": "uglifyjs --compress --mangle -- www/bundle.js > build/bundle.min.js",
+    "clean:build": "rm -rf build/*",
     "build:js": "npm run browserify && npm run uglify",
-    "build": "npm run build:js",
+    "build:img": "imagemin www/map_data.png --out-dir=build",
+    "build:html": "NODE_ENV=prod node scripts/preprocess.js",
+    "build": "npm run clean:build && npm run build:js && npm run build:img && npm run build:html",
+    "stage:rev": "node scripts/rev.js",
+    "stage": "npm run build && npm run stage:rev",
+    "deploy:copy": "node scripts/deploy.js",
+    "deploy": "npm run stage && npm run deploy:copy",
     "test": "mocha"
   },
   "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
   "license": "ISC",
   "devDependencies": {
     "browserify": "^13.1.1",
+    "del": "^2.2.2",
+    "git-rev-sync": "^1.8.0",
+    "glob": "^7.1.1",
+    "imagemin": "^5.2.2",
+    "imagemin-cli": "^3.0.0",
     "mocha": "^3.2.0",
+    "preprocess": "^3.1.0",
+    "replace": "^0.3.0",
     "uglify-js": "^2.7.5"
   },
   "dependencies": {

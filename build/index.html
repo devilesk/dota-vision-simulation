@@ -31,11 +31,6 @@ Move to show FOV. Click trees to toggle on/off. Radius: <input id="radius" type=
     <canvas id="canvas-vision" class="layer" style="z-index: 3;"></canvas>
 </div>
 FOV: <span id="fov"></span>ms, draw: <span id="draw"></span>ms, X: <span id="x-coord"></span>, Y: <span id="y-coord"></span>, WorldX: <span id="worldX-coord"></span>, WorldY: <span id="worldY-coord"></span>
-<!-- @if NODE_ENV='dev' -->
-<script src="bundle.js"></script>
-<!-- @endif -->
-<!-- @if NODE_ENV='prod' !>
 <script src="bundle.min.js"></script>
-<!-- @endif -->
 </body>
 </html>
