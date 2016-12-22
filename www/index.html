@@ -1,0 +1,41 @@
+<html>
+	<head>
+        <link rel="shortcut icon" href="/media/favicon.png">
+		<title>Dota 2 Vision Simulation</title>
+        <meta name="description" content="Dota 2 Vision Simulation.">
+        <meta name="author" content="devilesk">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+	</head>
+    <style>
+#canvas-container {
+    position: relative;
+}
+.layer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+.data-image, #canvas-map_data {
+    display: none;
+}
+    </style>
+	<body>
+Move to show FOV. Click trees to toggle on/off. Radius: <input id="radius" type="text" size="6" value="1800" />. Zoom Level: <select id="zoom" name="zoom"/>
+<option value="1" selected="selected">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="8">8</option>
+</select>
+<br/>
+<div id="canvas-container">
+    <canvas id="canvas-background" class="layer" style="z-index: 1;"></canvas>
+    <canvas id="canvas-trees" class="layer" style="z-index: 2;"></canvas>
+    <canvas id="canvas-vision" class="layer" style="z-index: 3;"></canvas>
+</div>
+FOV: <span id="fov"></span>ms, draw: <span id="draw"></span>ms, X: <span id="x-coord"></span>, Y: <span id="y-coord"></span>, WorldX: <span id="worldX-coord"></span>, WorldY: <span id="worldY-coord"></span>
+<canvas id="canvas-map_data"></canvas>
+<script src="bundle.js"></script>
+</body>
+</html>

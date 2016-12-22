@@ -1,0 +1,30 @@
+{
+  "name": "dota-vision-simulation",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "browserify": "browserify src/app.js > www/bundle.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^13.1.1",
+    "browserify-shim": "^3.8.12"
+  },
+  "dependencies": {
+    "jimp": "^0.2.27"
+  },
+  "browser": {
+    "jimp": "./node_modules/jimp/browser/lib/jimp.min.js"
+  },
+  "browserify-shim": {
+    "jimp": "Jimp"
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
+  }
+}
