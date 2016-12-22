@@ -6,27 +6,21 @@
   "scripts": {
     "browserify": "browserify src/app.js > www/bundle.js",
     "uglify": "uglifyjs www/bundle.js > www/bundle.min.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:js": "npm run browserify && npm run uglify",
+    "build": "npm run build:js",
+    "test": "mocha"
   },
   "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
   "license": "ISC",
   "devDependencies": {
     "browserify": "^13.1.1",
-    "browserify-shim": "^3.8.12",
+    "mocha": "^3.2.0",
     "uglify-js": "^2.7.5"
   },
   "dependencies": {
     "jimp": "^0.2.27"
   },
   "browser": {
-    "jimp": "./node_modules/jimp/browser/lib/jimp.min.js"
-  },
-  "browserify-shim": {
-    "jimp": "Jimp"
-  },
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
+    "./src/imageHandler.js": "./browser/imageHandler.js"
   }
 }

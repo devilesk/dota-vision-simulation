@@ -1,4 +1,4 @@
-var Jimp = require("jimp");
+var ImageHandler = require("./imageHandler.js");
 var ROT = require("./rot6.js");
 
 function key2pt(key) {
@@ -77,12 +77,6 @@ function setTreeWalls(obj, elevation, tree, tree_elevations, tree_state, tree_bl
     }
 }
 
-function blackPixelHandler(p, pt, grid) {
-    if (p[0] === 0) {
-        grid[pt.x + "," + pt.y] = pt;
-    }
-}
-
 function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     var self = this;
     
@@ -109,38 +103,35 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.gridWidth = this.worldWidth / 64 + 1;
     this.gridHeight = this.worldHeight / 64 + 1;
     
-    Jimp.read(mapDataImagePath).then(initImageData).catch(function (err) {
-        console.log(err);
-    });
-    
-    function initImageData(image) {
-        self.gridnav = parseImage(image, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.ent_fow_blocker_node = parseImage(image, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.tools_no_wards = parseImage(image, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.elevationGrid = parseImage(image, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+    this.imageHandler = new ImageHandler(mapDataImagePath);
+    this.imageHandler.load(function () {
+        self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
+        self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
+        self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
+        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
         elevationValues.forEach(function (elevation) {
             self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
         });
-        parseImage(image, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
-        image.getBase64(Jimp.MIME_JPEG, onReady);
-    }
-    
-    function parseImage(image, offset, width, height, pixelHandler) {
+        parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+        onReady();
+    });
+
+    function parseImage(imageHandler, offset, width, height, pixelHandler) {
         var grid = {};
-        image.scan(offset, 0, width, height, function (x, y, idx) {
-            var r = this.bitmap.data[idx + 0];
-            var g = this.bitmap.data[idx + 1];
-            var b = this.bitmap.data[idx + 2];
-            var alpha = this.bitmap.data[idx + 3];
-            var pt = self.ImageXYtoGridXY(x - offset, y);
-            pixelHandler([r, g, b], pt, grid);
-        });
-        
+        imageHandler.scan(offset, width, height, pixelHandler, grid);
         return grid;
     }
 
+    function blackPixelHandler(x, y, p, grid) {
+        var pt = self.ImageXYtoGridXY(x, y);
+        if (p[0] === 0) {
+            grid[pt.x + "," + pt.y] = pt;
+        }
+    }
+
     var elevationValues = [];
-    function elevationPixelHandler(p, pt, grid) {
+    function elevationPixelHandler(x, y, p, grid) {
+        var pt = self.ImageXYtoGridXY(x, y);
         pt.z = p[0];
         grid[pt.x + "," + pt.y] = pt;
         if (elevationValues.indexOf(p[0]) == -1) {
@@ -148,7 +139,8 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         }
     }
 
-    function treeElevationPixelHandler(p, pt, grid) {
+    function treeElevationPixelHandler(x, y, p, grid) {
+        var pt = self.ImageXYtoGridXY(x, y);
         if (p[1] == 0 && p[2] == 0) {
             // trees are 2x2 in grid
             // tree origins rounded up when converted to grid, so they represent top right corner. subtract 0.5 to get grid origin

@@ -16,8 +16,7 @@ var background = document.getElementById("canvas-background"),
     COLOR_LIT_STUMP = [200, 200, 0],
     COLOR_INVALID = [255, 0, 0],
     COLOR_GRIDNAV = [0, 0, 255],
-    COLOR_FOW_BLOCKER = [0,255,255],
-    mapDataImg;
+    COLOR_FOW_BLOCKER = [0,255,255]
         
 var vs = new VisionSimulation(worlddata, 'map_data.png', onReady);
 
@@ -33,7 +32,7 @@ function resize() {
 }
 
 function drawBackground() {
-    backgroundCtx.drawImage(mapDataImg, 0, 0, vs.gridWidth, vs.gridHeight, 0, 0, CELL[0]*vs.gridWidth, CELL[1]*vs.gridHeight);
+    backgroundCtx.drawImage(vs.imageHandler.image, 0, 0, vs.gridWidth, vs.gridHeight, 0, 0, CELL[0]*vs.gridWidth, CELL[1]*vs.gridHeight);
     
     for (p in vs.gridnav) {
         var pt = vs.gridnav[p];
@@ -94,11 +93,7 @@ function getCoords(e) {
     return vs.ImageXYtoGridXY(Math.floor(x/CELL[0]), Math.floor(y/CELL[1]));
 }
 
-function onReady(err, src) {
-    mapDataImg = document.createElement("img");
-    mapDataImg.setAttribute("src", src);
-    //document.body.appendChild(mapDataImg);
-    
+function onReady() {
     resize();
     drawBackground();
     drawTrees();
