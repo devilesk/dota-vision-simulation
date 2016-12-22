@@ -5,7 +5,7 @@
   "main": "src/vision-simulation.js",
   "scripts": {
     "browserify": "browserify src/app.js > www/bundle.js",
-    "uglify": "uglifyjs www/bundle.js > www/bundle.min.js",
+    "uglify": "uglifyjs --compress --mangle -- www/bundle.js > www/bundle.min.js",
     "build:js": "npm run browserify && npm run uglify",
     "build": "npm run build:js",
     "test": "mocha"
