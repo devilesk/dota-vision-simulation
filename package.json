@@ -22,5 +22,16 @@
   },
   "browser": {
     "./src/imageHandler.js": "./browser/imageHandler.js"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devilesk/dota-vision-simulation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/devilesk/dota-vision-simulation/issues"
+  },
+  "homepage": "https://github.com/devilesk/dota-vision-simulation#readme"
 }

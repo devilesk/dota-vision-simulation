@@ -1,3 +1,1 @@
 #dota-vision-simulation
-
-
