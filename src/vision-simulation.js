@@ -168,7 +168,6 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     }
 }
 VisionSimulation.prototype.updateVisibility = function (gX, gY) {
-    var t3 = Date.now();
     var self = this,
         key = xy2key(gX, gY),
         elevation = this.elevationGrid[key].z,
@@ -179,9 +178,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY) {
     setWalls(this.walls, this.ent_fow_blocker_node);
     setWalls(this.walls, this.tools_no_wards);
     setTreeWalls(this.walls, elevation, this.tree, this.tree_elevations, this.tree_state, this.tree_blocks);
-    var t4 = Date.now();
-    console.log(t4 - t3);
-    var t1 = Date.now();
+
     fov.walls = this.walls;
     this.lights = {};
     fov.compute(gX, gY, this.radius, function(x2, y2, r, vis) {
@@ -190,8 +187,6 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY) {
             self.lights[key] = 255;
         }
     });
-    var t2 = Date.now();
-    console.log(t2 - t1);
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {

@@ -10,7 +10,7 @@ ImageHandler.prototype.load = function (callback) {
         self.image = image;
         callback();
     }).catch(function (err) {
-        console.log(err);
+        console.log('error', err);
     });
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
