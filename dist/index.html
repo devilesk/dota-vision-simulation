@@ -8,6 +8,7 @@
 	</head>
     <style>
 #canvas-container {
+    margin-top: 5px;
     position: relative;
 }
 .layer {
@@ -17,20 +18,23 @@
 }
     </style>
 	<body>
-Move to show FOV. Click trees to toggle on/off. Radius: <input id="radius" type="text" size="6" value="1800" />. Zoom Level: <select id="zoom" name="zoom"/>
-<option value="1" selected="selected">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="8">8</option>
+Move to show FOV. Click trees to toggle on/off. Radius: <input id="radius" type="text" size="6" value="1600" />. Zoom: <select id="zoom" name="zoom"/>
+<option value="1" selected="selected">1x</option>
+<option value="2">2x</option>
+<option value="3">3x</option>
+<option value="4">4x</option>
+<option value="8">8x</option>
+<option value="16">16x</option>
 </select>
-<br/>
+<br>
 <div id="canvas-container">
     <canvas id="canvas-background" class="layer" style="z-index: 1;"></canvas>
     <canvas id="canvas-trees" class="layer" style="z-index: 2;"></canvas>
     <canvas id="canvas-vision" class="layer" style="z-index: 3;"></canvas>
 </div>
-FOV: <span id="fov"></span>ms, draw: <span id="draw"></span>ms, X: <span id="x-coord"></span>, Y: <span id="y-coord"></span>, WorldX: <span id="worldX-coord"></span>, WorldY: <span id="worldY-coord"></span>
-<script src="bundle.min.fdc2d16.js"></script>
+<br>X: <span id="x-coord"></span>, Y: <span id="y-coord"></span>, WorldX: <span id="worldX-coord"></span>, WorldY: <span id="worldY-coord"></span>
+<br>FOV: <span id="fov"></span>ms, draw: <span id="draw"></span>ms
+<br>Debug: <input id="debug" type="checkbox" />
+<script src="bundle.min.4a2b08f.js"></script>
 </body>
 </html>
