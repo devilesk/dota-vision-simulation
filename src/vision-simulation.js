@@ -22,7 +22,7 @@ function getAdjacentCells(data, x, y) {
     var cells = [];
     for (var i = -1; i <= 1; i++) {
         for (var j = -1; j <= 1; j++) {
-            if (0 !== i && 0 !== j) {
+            if (0 !== i || 0 !== j) {
                 var k = (x + i) + "," + (y + j);
                 if (data[k]) {
                     cells.push(data[k]);
@@ -53,7 +53,7 @@ function generateElevationWalls(data, elevation) {
 function setElevationWalls(obj, data, elevation) {
     for (var i = 0; i < data[elevation].length; i++) {
         var el = data[elevation][i];
-        obj[el[0] + "," + el[1]] = el;
+        obj[el[1] + "," + el[2]] = el;
     }
 }
 
@@ -92,7 +92,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.tree_elevations = {};
     this.tree_state = {};
     this.walls = {};
-    this.radius = this.opts.radius || parseInt(1800 / 64);
+    this.radius = this.opts.radius || parseInt(1600 / 64);
     this.lights = {};
     this.worldMinX = worlddata.worldMinX;
     this.worldMinY = worlddata.worldMinY;
@@ -232,5 +232,6 @@ VisionSimulation.prototype.key2pt = key2pt;
 VisionSimulation.prototype.xy2key = xy2key;
 VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
+VisionSimulation.prototype.getAdjacentCells = getAdjacentCells;
 
 module.exports = VisionSimulation;

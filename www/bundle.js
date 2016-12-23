@@ -51,7 +51,10 @@ var background = document.getElementById("canvas-background"),
     COLOR_LIT_STUMP = [200, 200, 0],
     COLOR_INVALID = [255, 0, 0],
     COLOR_GRIDNAV = [0, 0, 255],
-    COLOR_FOW_BLOCKER = [0,255,255]
+    COLOR_FOW_BLOCKER = [0,255,255],
+    COLOR_WALL = [255,255,255],
+    debug = false;
+    
         
 var vs = new VisionSimulation(worlddata, 'map_data.png', onReady);
 
@@ -114,11 +117,22 @@ function redraw(gX, gY) {
             ctx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }
         ctx.fillStyle = "rgb("+COLOR_LIGHT_CENTER.join(",")+")";
-        ctx.fillRect(cpt*CELL[0], cpt*CELL[1], CELL[0], CELL[1]);
+        ctx.fillRect(cpt.x*CELL[0], cpt.y*CELL[1], CELL[0], CELL[1]);
     }
     else {
         ctx.fillStyle = "rgb("+COLOR_INVALID.join(",")+")";
-        ctx.fillRect(cpt*CELL[0], cpt*CELL[1], CELL[0], CELL[1]);
+        ctx.fillRect(cpt.x*CELL[0], cpt.y*CELL[1], CELL[0], CELL[1]);
+    }
+    
+    if (debug && gX !== undefined && gY !== undefined) {
+        var key = vs.xy2key(gX, gY);
+        var elevation = vs.elevationGrid[key].z;
+        for (var i = 0; i < vs.elevationWalls[elevation].length; i++) {
+            var pt = vs.xy2pt(vs.elevationWalls[elevation][i][1], vs.elevationWalls[elevation][i][2]);
+            pt = vs.GridXYtoImageXY(pt.x, pt.y);
+            ctx.fillStyle = "rgb("+COLOR_WALL.join(",")+")";
+            ctx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
+        }
     }
 }
 
@@ -182,6 +196,10 @@ function onReady() {
 
     document.getElementById("radius").addEventListener("change", function (e){
         vs.setRadius(parseInt(Math.floor(parseInt(document.getElementById("radius").value) / 64)));
+    }, false);
+
+    document.getElementById("debug").addEventListener("change", function (e){
+        debug = document.getElementById('debug').checked;
     }, false);
 }
 },{"./vision-simulation":4,"./worlddata.json":5}],3:[function(require,module,exports){
@@ -395,7 +413,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cx = neighbors[i][0];
 			cy = neighbors[i][1];
             var key = cx+","+cy;
-            if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
+            //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
             obstacleType = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
@@ -718,7 +736,7 @@ function getAdjacentCells(data, x, y) {
     var cells = [];
     for (var i = -1; i <= 1; i++) {
         for (var j = -1; j <= 1; j++) {
-            if (0 !== i && 0 !== j) {
+            if (0 !== i || 0 !== j) {
                 var k = (x + i) + "," + (y + j);
                 if (data[k]) {
                     cells.push(data[k]);
@@ -749,7 +767,7 @@ function generateElevationWalls(data, elevation) {
 function setElevationWalls(obj, data, elevation) {
     for (var i = 0; i < data[elevation].length; i++) {
         var el = data[elevation][i];
-        obj[el[0] + "," + el[1]] = el;
+        obj[el[1] + "," + el[2]] = el;
     }
 }
 
@@ -788,7 +806,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.tree_elevations = {};
     this.tree_state = {};
     this.walls = {};
-    this.radius = this.opts.radius || parseInt(1800 / 64);
+    this.radius = this.opts.radius || parseInt(1600 / 64);
     this.lights = {};
     this.worldMinX = worlddata.worldMinX;
     this.worldMinY = worlddata.worldMinY;
@@ -928,6 +946,7 @@ VisionSimulation.prototype.key2pt = key2pt;
 VisionSimulation.prototype.xy2key = xy2key;
 VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
+VisionSimulation.prototype.getAdjacentCells = getAdjacentCells;
 
 module.exports = VisionSimulation;
 },{"./imageHandler.js":1,"./rot6.js":3}],5:[function(require,module,exports){

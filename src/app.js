@@ -16,7 +16,10 @@ var background = document.getElementById("canvas-background"),
     COLOR_LIT_STUMP = [200, 200, 0],
     COLOR_INVALID = [255, 0, 0],
     COLOR_GRIDNAV = [0, 0, 255],
-    COLOR_FOW_BLOCKER = [0,255,255]
+    COLOR_FOW_BLOCKER = [0,255,255],
+    COLOR_WALL = [255,255,255],
+    debug = false;
+    
         
 var vs = new VisionSimulation(worlddata, 'map_data.png', onReady);
 
@@ -79,11 +82,22 @@ function redraw(gX, gY) {
             ctx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }
         ctx.fillStyle = "rgb("+COLOR_LIGHT_CENTER.join(",")+")";
-        ctx.fillRect(cpt*CELL[0], cpt*CELL[1], CELL[0], CELL[1]);
+        ctx.fillRect(cpt.x*CELL[0], cpt.y*CELL[1], CELL[0], CELL[1]);
     }
     else {
         ctx.fillStyle = "rgb("+COLOR_INVALID.join(",")+")";
-        ctx.fillRect(cpt*CELL[0], cpt*CELL[1], CELL[0], CELL[1]);
+        ctx.fillRect(cpt.x*CELL[0], cpt.y*CELL[1], CELL[0], CELL[1]);
+    }
+    
+    if (debug && gX !== undefined && gY !== undefined) {
+        var key = vs.xy2key(gX, gY);
+        var elevation = vs.elevationGrid[key].z;
+        for (var i = 0; i < vs.elevationWalls[elevation].length; i++) {
+            var pt = vs.xy2pt(vs.elevationWalls[elevation][i][1], vs.elevationWalls[elevation][i][2]);
+            pt = vs.GridXYtoImageXY(pt.x, pt.y);
+            ctx.fillStyle = "rgb("+COLOR_WALL.join(",")+")";
+            ctx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
+        }
     }
 }
 
@@ -147,5 +161,9 @@ function onReady() {
 
     document.getElementById("radius").addEventListener("change", function (e){
         vs.setRadius(parseInt(Math.floor(parseInt(document.getElementById("radius").value) / 64)));
+    }, false);
+
+    document.getElementById("debug").addEventListener("change", function (e){
+        debug = document.getElementById('debug').checked;
     }, false);
 }

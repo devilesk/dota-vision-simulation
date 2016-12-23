@@ -208,7 +208,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cx = neighbors[i][0];
 			cy = neighbors[i][1];
             var key = cx+","+cy;
-            if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
+            //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
             obstacleType = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
