@@ -183,7 +183,13 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY) {
     this.lights = {};
     fov.compute(gX, gY, this.radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
-        if (vis == 1 && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < self.radius * self.radius) {
+        var treePt = self.tree_relations[key];
+        var treeBlocking = false;
+        if (treePt) {
+            var treeKey = pt2key(treePt);
+            treeBlocking = self.tree_state[treeKey] && self.tree_elevations[treeKey] > elevation;
+        }
+        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < self.radius * self.radius) {
             self.lights[key] = 255;
         }
     });
