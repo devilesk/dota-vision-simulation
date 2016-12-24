@@ -8,7 +8,7 @@ execSync('mkdir -p dist');
 execSync('rm -rf dist/*');
 execSync('cp -r build/* dist/');
 
-glob("dist/**/*.{js,css,map}", function (er, files) {
+glob("dist/**/*.{js,css,map,png}", function (er, files) {
     console.log(files);
 
     var jsMap = {};

@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/vision-simulation.js",
   "scripts": {
-    "browserify": "browserify src/app.js > www/bundle.js",
+    "browserify": "browserify src/app.js --standalone VisionSimulation > www/bundle.js",
     "uglify": "uglifyjs --compress --mangle -- www/bundle.js > build/bundle.min.js",
     "clean:build": "rm -rf build/*",
     "build:js": "npm run browserify && npm run uglify",
