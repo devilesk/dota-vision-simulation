@@ -1,7 +1,7 @@
 {
   "name": "dota-vision-simulation",
   "version": "0.1.0",
-  "description": "",
+  "description": "http://devilesk.com/dota2/apps/vision-simulation/",
   "main": "src/vision-simulation.js",
   "scripts": {
     "browserify": "browserify src/app.js --standalone VisionSimulation > www/bundle.js",
