@@ -73,7 +73,8 @@ function drawTrees() {
 function redraw(gX, gY) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     var cpt = vs.GridXYtoImageXY(gX, gY);
-    if (!vs.gridnav[vs.xy2key(gX, gY)]) {
+    var key = vs.xy2key(gX, gY);
+    if (!vs.gridnav[key] && !vs.tools_no_wards[key]) {
         for (var k in vs.lights) {
             var pt = vs.key2pt(k);
             pt = vs.GridXYtoImageXY(pt.x, pt.y);
@@ -90,7 +91,6 @@ function redraw(gX, gY) {
     }
     
     if (debug && gX !== undefined && gY !== undefined) {
-        var key = vs.xy2key(gX, gY);
         var elevation = vs.elevationGrid[key].z;
         for (var i = 0; i < vs.elevationWalls[elevation].length; i++) {
             var pt = vs.xy2pt(vs.elevationWalls[elevation][i][1], vs.elevationWalls[elevation][i][2]);
