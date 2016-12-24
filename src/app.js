@@ -16,8 +16,8 @@ function App(mapImageDataPath) {
         COLOR_STUMP = [102, 51, 0],
         COLOR_LIT_STUMP = [200, 200, 0],
         COLOR_INVALID = [255, 0, 0],
-        COLOR_GRIDNAV = [0, 0, 255],
-        COLOR_FOW_BLOCKER = [0,255,255],
+        COLOR_GRIDNAV = [0, 0, 0],
+        COLOR_FOW_BLOCKER = [0,200,200],
         COLOR_WALL = [255,255,255],
         debug = false;
         

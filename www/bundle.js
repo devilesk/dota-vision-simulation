@@ -51,8 +51,8 @@ function App(mapImageDataPath) {
         COLOR_STUMP = [102, 51, 0],
         COLOR_LIT_STUMP = [200, 200, 0],
         COLOR_INVALID = [255, 0, 0],
-        COLOR_GRIDNAV = [0, 0, 255],
-        COLOR_FOW_BLOCKER = [0,255,255],
+        COLOR_GRIDNAV = [0, 0, 0],
+        COLOR_FOW_BLOCKER = [0,200,200],
         COLOR_WALL = [255,255,255],
         debug = false;
         
@@ -863,7 +863,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             // trees are 2x2 in grid
             // tree origins rounded up when converted to grid, so they represent top right corner. subtract 0.5 to get grid origin
             var treeOrigin = {x: pt.x - 0.5, y: pt.y - 0.5};
-            var treeElevation = p[0] + 20;
+            var treeElevation = p[0] + 40;
             var kC = pt2key(treeOrigin);
             self.tree[kC] = treeOrigin;
             self.tree_elevations[kC] = treeElevation;
