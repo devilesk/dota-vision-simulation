@@ -820,6 +820,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.worldHeight = this.worldMaxY - this.worldMinY;
     this.gridWidth = this.worldWidth / 64 + 1;
     this.gridHeight = this.worldHeight / 64 + 1;
+    this.ready = false;
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     this.imageHandler.load(function () {
@@ -831,6 +832,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
         });
         parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+        self.ready = true;
         onReady();
     });
 
@@ -885,12 +887,13 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         return (!(x+","+y in self.walls));
     }
 }
-VisionSimulation.prototype.updateVisibility = function (gX, gY) {
+VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     var self = this,
         key = xy2key(gX, gY),
         elevation = this.elevationGrid[key].z,
         fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
 
+    radius = radius || self.radius;
     this.walls = {};
     setElevationWalls(this.walls, this.elevationWalls, elevation)
     setWalls(this.walls, this.ent_fow_blocker_node);
@@ -899,7 +902,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY) {
 
     fov.walls = this.walls;
     this.lights = {};
-    fov.compute(gX, gY, this.radius, function(x2, y2, r, vis) {
+    fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
         var treePt = self.tree_relations[key];
         var treeBlocking = false;
@@ -907,10 +910,25 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY) {
             var treeKey = pt2key(treePt);
             treeBlocking = self.tree_state[treeKey] && self.tree_elevations[treeKey] > elevation;
         }
-        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < self.radius * self.radius) {
+        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
         }
     });
+}
+
+VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckToolsNoWards, bCheckTreeState) {
+    var key = xy2key(x, y),
+        treeBlocking = false;
+        
+    if (bCheckTreeState) {
+        var treePt = this.tree_relations[key];
+        if (treePt) {
+            var treeKey = pt2key(treePt);
+            treeBlocking = this.tree_state[treeKey];
+        }
+    }
+    
+    return (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {

@@ -4,10 +4,12 @@
   "description": "http://devilesk.com/dota2/apps/vision-simulation/",
   "main": "src/vision-simulation.js",
   "scripts": {
-    "browserify": "browserify src/app.js --standalone VisionSimulation > www/bundle.js",
-    "uglify": "uglifyjs --compress --mangle -- www/bundle.js > build/bundle.min.js",
+    "browserify:demo": "browserify src/app.js --standalone VisionSimulation > www/bundle.js",
+    "browserify:prod": "browserify src/vision-simulation.js --standalone DotaVisionSimulation > dist/dota-vision-simulation.js",
+    "uglify:demo": "uglifyjs --compress --mangle -- www/bundle.js > build/bundle.min.js",
+    "uglify:prod": "uglifyjs --compress --mangle -- dist/dota-vision-simulation.js > dist/dota-vision-simulation.min.js",
     "clean:build": "rm -rf build/*",
-    "build:js": "npm run browserify && npm run uglify",
+    "build:js": "npm run browserify:demo && npm run uglify:demo",
     "build:img": "imagemin www/map_data.png --out-dir=build",
     "build:html": "NODE_ENV=prod node scripts/preprocess.js",
     "build": "npm run clean:build && npm run build:js && npm run build:img && npm run build:html",
@@ -15,7 +17,8 @@
     "stage": "npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
     "deploy": "npm run stage && npm run deploy:copy",
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "npm run browserify:prod && npm run uglify:prod"
   },
   "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
   "license": "ISC",
