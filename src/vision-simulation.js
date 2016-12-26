@@ -178,7 +178,6 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     }
 
     this.lightPassesCallback = function (x, y) {
-        console.log(self);
         return (!(x+","+y in self.walls));
     }
 }
