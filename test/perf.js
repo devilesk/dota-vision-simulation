@@ -1,7 +1,9 @@
 var VisionSimulation = require("../src/vision-simulation.js");
 var worlddata = require("../src/worlddata.json");
 
+var start = Date.now();
 var vs = new VisionSimulation(worlddata, './www/map_data.png', function () {
+    console.log('load time', Date.now() - start + 'ms');
     var total = 0;
     for (var i = 0; i < 10; i++) {
         var c = profile();
