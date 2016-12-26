@@ -201,6 +201,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     this.lights = {};
     this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
+        if (!self.elevationGrid[key]) return;
         var treePt = self.tree_relations[key];
         var treeBlocking = false;
         if (treePt) {
