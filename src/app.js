@@ -64,8 +64,7 @@ function App(mapImageDataPath) {
         for (var k in vs.tree_relations) {
             var pt = vs.key2pt(k);
             pt = vs.GridXYtoImageXY(pt.x, pt.y);
-            var kC = vs.pt2key(vs.tree_relations[k]);
-            var c = vs.tree_state[kC] ? COLOR_TREE : COLOR_STUMP;
+            var c = vs.tree_state[vs.tree_relations[k].key] ? COLOR_TREE : COLOR_STUMP;
             treeCtx.fillStyle = "rgb("+c.join(",")+")";
             treeCtx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }

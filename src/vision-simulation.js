@@ -1,9 +1,12 @@
 var ImageHandler = require("./imageHandler.js");
 var ROT = require("./rot6.js");
 
+var key2pt_cache = {};
 function key2pt(key) {
+    if (key in key2pt_cache) return key2pt_cache[key];
     var p = key.split(',').map(function (c) { return parseInt(c) });
-    return {x: p[0], y: p[1]};
+    var pt = {x: p[0], y: p[1], key: key};
+    return pt;
 }
 
 function xy2key(x, y) {
@@ -11,7 +14,7 @@ function xy2key(x, y) {
 }
 
 function xy2pt(x, y) {
-    return {x: x, y: y};
+    return {x: x, y: y, key: x + "," + y};
 }
 
 function pt2key(pt) {
@@ -114,6 +117,16 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
         });
         parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+        console.log(self.gridWidth, self.gridHeight);
+        for (var i = 0; i < self.gridWidth; i++) {
+            for (var j = 0; j < self.gridHeight; j++) {
+                key2pt_cache[xy2key(i, j)] = xy2pt(i, j);
+                /*self.keyPointCache[xy2key(i - 0.5, j - 0.5)] = xy2pt(i - 0.5, j - 0.5);
+                self.keyPointCache[xy2key(i - 0.5, j + 0.5)] = xy2pt(i - 0.5, j + 0.5);
+                self.keyPointCache[xy2key(i + 0.5, j + 0.5)] = xy2pt(i + 0.5, j + 0.5);
+                self.keyPointCache[xy2key(i + 0.5, j - 0.5)] = xy2pt(i + 0.5, j - 0.5);*/
+            }
+        }
         self.ready = true;
         onReady();
     });
@@ -146,9 +159,9 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         if (p[1] == 0 && p[2] == 0) {
             // trees are 2x2 in grid
             // tree origins rounded up when converted to grid, so they represent top right corner. subtract 0.5 to get grid origin
-            var treeOrigin = {x: pt.x - 0.5, y: pt.y - 0.5};
+            var treeOrigin = xy2pt(pt.x - 0.5, pt.y - 0.5);
             var treeElevation = p[0] + 40;
-            var kC = pt2key(treeOrigin);
+            var kC = treeOrigin.key;
             self.tree[kC] = treeOrigin;
             self.tree_elevations[kC] = treeElevation;
             self.tree_blocks[kC] = [];
@@ -156,9 +169,8 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             // iterate through tree 2x2 by taking floor and ceil of tree grid origin
             [Math.floor, Math.ceil].forEach(function (i) {
                 [Math.floor, Math.ceil].forEach(function (j) {
-                    var treeCorner = {x: i(treeOrigin.x), y: j(treeOrigin.y)};
-                    var kB = pt2key(treeCorner);
-                    self.tree_relations[kB] = treeOrigin;
+                    var treeCorner = xy2pt(i(treeOrigin.x), j(treeOrigin.y));
+                    self.tree_relations[treeCorner.key] = treeOrigin;
                     self.tree_blocks[kC].push(treeCorner);
                 });
             });
@@ -166,6 +178,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     }
 
     this.lightPassesCallback = function (x, y) {
+        console.log(self);
         return (!(x+","+y in self.walls));
     }
 }
@@ -189,8 +202,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
         var treePt = self.tree_relations[key];
         var treeBlocking = false;
         if (treePt) {
-            var treeKey = pt2key(treePt);
-            treeBlocking = self.tree_state[treeKey] && self.tree_elevations[treeKey] > elevation;
+            treeBlocking = self.tree_state[treePt.key] && self.tree_elevations[treePt.key] > elevation;
         }
         if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
@@ -205,8 +217,7 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
     if (bCheckTreeState) {
         var treePt = this.tree_relations[key];
         if (treePt) {
-            var treeKey = pt2key(treePt);
-            treeBlocking = this.tree_state[treeKey];
+            treeBlocking = this.tree_state[treePt.key];
         }
     }
     
@@ -218,8 +229,7 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
     var isTree = !!this.tree_relations[key];
     if (isTree) {
         var pt = this.tree_relations[key];
-        var kC = pt2key(pt);
-        this.tree_state[kC] = !this.tree_state[kC];
+        this.tree_state[pt.key] = !this.tree_state[pt.key];
     }
     return isTree;
 }
