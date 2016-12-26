@@ -723,6 +723,7 @@ function key2pt(key) {
     if (key in key2pt_cache) return key2pt_cache[key];
     var p = key.split(',').map(function (c) { return parseInt(c) });
     var pt = {x: p[0], y: p[1], key: key};
+    key2pt_cache[key] = pt;
     return pt;
 }
 
@@ -738,35 +739,27 @@ function pt2key(pt) {
     return pt.x + "," + pt.y;
 }
 
-function getAdjacentCells(data, x, y) {
-    var cells = [];
-    for (var i = -1; i <= 1; i++) {
-        for (var j = -1; j <= 1; j++) {
-            if (0 !== i || 0 !== j) {
-                var k = (x + i) + "," + (y + j);
-                if (data[k]) {
-                    cells.push(data[k]);
-                }
-            }
-        }
-    }
-    return cells;
-}
-
 function generateElevationWalls(data, elevation) {
+    var t1 = Date.now();
     var walls = {};
-    for (var i in data) {
-        var pt = data[i];
+    for (var key in data) {
+        var pt = data[key];
         if (pt.z > elevation) {
-            var adj = getAdjacentCells(data, pt.x, pt.y);
-            for (var j = 0; j < adj.length; j++) {
-                if (adj[j].z <= elevation) {
-                    walls[pt.key] = pt;
-                    break;
+            adjLoop:
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    if (0 !== i || 0 !== j) {
+                        var k = (pt.x + i) + "," + (pt.y + j);
+                        if (data[k] && data[k].z <= elevation) {
+                            walls[pt.key] = pt;
+                            break adjLoop;
+                        }
+                    }
                 }
             }
         }
     }
+    console.log('generateElevationWalls', Date.now() - t1 + 'ms');
     return walls;
 }
 
@@ -800,7 +793,8 @@ function setTreeWalls(obj, elevation, tree, tree_elevations, tree_state, tree_bl
 function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     var self = this;
     
-    this.opts = opts || {},
+    this.opts = opts || {};
+    this.grid = [];
     this.gridnav = null;
     this.ent_fow_blocker_node = null;
     this.tools_no_wards = null;
@@ -827,23 +821,34 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.ready = false;
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
+    var t1 = Date.now();
     this.imageHandler.load(function () {
+        var t2 = Date.now();
+        console.log('image load', t2 - t1 + 'ms');
         self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
         parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
         self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+        var t3 = Date.now();
+        console.log('image process', t3 - t2 + 'ms');
         self.elevationValues.forEach(function (elevation) {
-            self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+            //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
             self.treeWalls[elevation] = {};
             setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
         });
-        console.log(self.gridWidth, self.gridHeight);
+        var t4 = Date.now();
+        console.log('walls generation', t4 - t3 + 'ms');
         for (var i = 0; i < self.gridWidth; i++) {
+            self.grid[i] = [];
             for (var j = 0; j < self.gridHeight; j++) {
-                key2pt_cache[xy2key(i, j)] = xy2pt(i, j);
+                var pt = xy2pt(i, j);
+                key2pt_cache[pt.key] = pt;
+                self.grid[i].push(pt);
             }
         }
+        var t5 = Date.now();
+        console.log('cache prime', t5 - t4 + 'ms');
         self.ready = true;
         onReady();
     });
@@ -908,6 +913,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     radius = radius || self.radius;
     this.elevation = this.elevationGrid[key].z;
     this.walls = this.treeWalls[this.elevation];
+    if (!this.elevationWalls[this.elevation]) this.elevationWalls[this.elevation] = generateElevationWalls(this.elevationGrid, this.elevation);
     //setElevationWalls(this.walls, this.elevationWalls, this.elevation)
     //setWalls(this.walls, this.ent_fow_blocker_node);
     //setWalls(this.walls, this.tools_no_wards);
@@ -917,6 +923,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     this.lights = {};
     this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
+        if (!self.elevationGrid[key]) return;
         var treePt = self.tree_relations[key];
         var treeBlocking = false;
         if (treePt) {
@@ -1002,7 +1009,6 @@ VisionSimulation.prototype.key2pt = key2pt;
 VisionSimulation.prototype.xy2key = xy2key;
 VisionSimulation.prototype.xy2pt = xy2pt;
 VisionSimulation.prototype.pt2key = pt2key;
-VisionSimulation.prototype.getAdjacentCells = getAdjacentCells;
 
 module.exports = VisionSimulation;
 },{"./imageHandler.js":1,"./rot6.js":3}],5:[function(require,module,exports){
