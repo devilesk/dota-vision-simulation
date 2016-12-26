@@ -804,8 +804,10 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.gridnav = null;
     this.ent_fow_blocker_node = null;
     this.tools_no_wards = null;
+    this.elevationValues = [];
     this.elevationGrid = null;
     this.elevationWalls = {};
+    this.treeWalls = {};
     this.tree = {}; // center key to point map
     this.tree_blocks = {}; // center to corners map
     this.tree_relations = {}; // corner to center map
@@ -829,19 +831,17 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
         self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
-        elevationValues.forEach(function (elevation) {
-            self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
-        });
         parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+        self.elevationValues.forEach(function (elevation) {
+            self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+            self.treeWalls[elevation] = {};
+            setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
+        });
         console.log(self.gridWidth, self.gridHeight);
         for (var i = 0; i < self.gridWidth; i++) {
             for (var j = 0; j < self.gridHeight; j++) {
                 key2pt_cache[xy2key(i, j)] = xy2pt(i, j);
-                /*self.keyPointCache[xy2key(i - 0.5, j - 0.5)] = xy2pt(i - 0.5, j - 0.5);
-                self.keyPointCache[xy2key(i - 0.5, j + 0.5)] = xy2pt(i - 0.5, j + 0.5);
-                self.keyPointCache[xy2key(i + 0.5, j + 0.5)] = xy2pt(i + 0.5, j + 0.5);
-                self.keyPointCache[xy2key(i + 0.5, j - 0.5)] = xy2pt(i + 0.5, j - 0.5);*/
             }
         }
         self.ready = true;
@@ -861,13 +861,13 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         }
     }
 
-    var elevationValues = [];
+    
     function elevationPixelHandler(x, y, p, grid) {
         var pt = self.ImageXYtoGridXY(x, y);
         pt.z = p[0];
         grid[pt.x + "," + pt.y] = pt;
-        if (elevationValues.indexOf(p[0]) == -1) {
-            elevationValues.push(p[0]);
+        if (self.elevationValues.indexOf(p[0]) == -1) {
+            self.elevationValues.push(p[0]);
         }
     }
 
@@ -896,7 +896,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.tools_no_wards) && !(key in self.walls);
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.tools_no_wards) && !(key in self.treeWalls[self.elevation]) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
@@ -907,11 +907,11 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
 
     radius = radius || self.radius;
     this.elevation = this.elevationGrid[key].z;
-    this.walls = {};
+    this.walls = this.treeWalls[this.elevation];
     //setElevationWalls(this.walls, this.elevationWalls, this.elevation)
     //setWalls(this.walls, this.ent_fow_blocker_node);
     //setWalls(this.walls, this.tools_no_wards);
-    setTreeWalls(this.walls, this.elevation, this.tree, this.tree_elevations, this.tree_state, this.tree_blocks);
+    //setTreeWalls(this.walls, this.elevation, this.tree, this.tree_elevations, this.tree_state, this.tree_blocks);
 
     this.fov.walls = this.walls;
     this.lights = {};
@@ -943,12 +943,29 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {
+    var self = this;
     var key = xy2key(x, y);
     var isTree = !!this.tree_relations[key];
     if (isTree) {
         var pt = this.tree_relations[key];
         this.tree_state[pt.key] = !this.tree_state[pt.key];
+        
+        this.elevationValues.forEach(function (elevation) {
+            if (elevation < self.tree_elevations[pt.key]) {
+                if (self.tree_state[pt.key]) {
+                    self.tree_blocks[pt.key].forEach(function (ptB) {
+                        self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
+                    });
+                }
+                else {
+                    self.tree_blocks[pt.key].forEach(function (ptB) {
+                        delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
+                    });
+                }
+            }
+        });
     }
+
     return isTree;
 }
 VisionSimulation.prototype.setRadius = function (r) {
