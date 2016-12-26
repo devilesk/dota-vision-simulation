@@ -201,19 +201,6 @@ function App(mapImageDataPath) {
         document.getElementById("debug").addEventListener("change", function (e){
             debug = document.getElementById('debug').checked;
         }, false);
-        
-        function profile() {
-            var t1 = Date.now();
-            for (var i = 0; i < vs.gridWidth; i++) {
-                for (var j = 0; j < vs.gridHeight; j++) {
-                    vs.updateVisibility(i, j);
-                }
-            }
-            var t2 = Date.now();
-            console.log(t2 - t1 + 'ms');
-        }
-        profile();
-        
     }
 }
 
