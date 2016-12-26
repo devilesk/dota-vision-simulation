@@ -550,6 +550,7 @@ function key2pt(key) {
     if (key in key2pt_cache) return key2pt_cache[key];
     var p = key.split(',').map(function (c) { return parseInt(c) });
     var pt = {x: p[0], y: p[1], key: key};
+    key2pt_cache[key] = pt;
     return pt;
 }
 
