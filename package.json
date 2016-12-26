@@ -6,8 +6,8 @@
   "scripts": {
     "browserify:demo": "browserify src/app.js --standalone VisionSimulation > www/bundle.js",
     "browserify:prod": "browserify src/vision-simulation.js --standalone DotaVisionSimulation > dist/dota-vision-simulation.js",
-    "uglify:demo": "uglifyjs --compress --mangle -- www/bundle.js > build/bundle.min.js",
-    "uglify:prod": "uglifyjs --compress --mangle -- dist/dota-vision-simulation.js > dist/dota-vision-simulation.min.js",
+    "uglify:demo": "uglifyjs --compress drop_console,dead_code --mangle -- www/bundle.js > build/bundle.min.js",
+    "uglify:prod": "uglifyjs --compress drop_console,dead_code --mangle -- dist/dota-vision-simulation.js > dist/dota-vision-simulation.min.js",
     "clean:build": "rm -rf build/*",
     "build:js": "npm run browserify:demo && npm run uglify:demo",
     "build:img": "imagemin www/map_data.png --out-dir=build",
