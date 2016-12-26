@@ -121,10 +121,6 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
         for (var i = 0; i < self.gridWidth; i++) {
             for (var j = 0; j < self.gridHeight; j++) {
                 key2pt_cache[xy2key(i, j)] = xy2pt(i, j);
-                /*self.keyPointCache[xy2key(i - 0.5, j - 0.5)] = xy2pt(i - 0.5, j - 0.5);
-                self.keyPointCache[xy2key(i - 0.5, j + 0.5)] = xy2pt(i - 0.5, j + 0.5);
-                self.keyPointCache[xy2key(i + 0.5, j + 0.5)] = xy2pt(i + 0.5, j + 0.5);
-                self.keyPointCache[xy2key(i + 0.5, j - 0.5)] = xy2pt(i + 0.5, j - 0.5);*/
             }
         }
         self.ready = true;
