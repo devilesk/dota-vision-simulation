@@ -65,8 +65,10 @@ function setTreeWalls(obj, elevation, tree, tree_elevations, tree_state, tree_bl
     for (var i in tree) {
         if (elevation < tree_elevations[i]) {
             if (tree_state[i]) {
+                //obj[i] = ['tree', tree[i].x, tree[i].y, Math.SQRT2];
                 tree_blocks[i].forEach(function (pt) {
-                    obj[pt.x + "," + pt.y] = ['tree', tree[i].x, tree[i].y, Math.SQRT2];
+                    var k = pt.x + "," + pt.y;
+                    obj[k] = (obj[k] || []).concat([['tree', tree[i].x, tree[i].y, Math.SQRT2]]);
                 });
             }
         }
@@ -175,7 +177,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
             [Math.floor, Math.ceil].forEach(function (i) {
                 [Math.floor, Math.ceil].forEach(function (j) {
                     var treeCorner = xy2pt(i(treeOrigin.x), j(treeOrigin.y));
-                    self.tree_relations[treeCorner.key] = treeOrigin;
+                    self.tree_relations[treeCorner.key] = (self.tree_relations[treeCorner.key] || []).concat(treeOrigin);
                     self.tree_blocks[kC].push(treeCorner);
                 });
             });
@@ -207,10 +209,14 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
         if (!self.elevationGrid[key]) return;
-        var treePt = self.tree_relations[key];
+        var treePts = self.tree_relations[key];
         var treeBlocking = false;
-        if (treePt) {
-            treeBlocking = self.tree_state[treePt.key] && self.tree_elevations[treePt.key] > self.elevation;
+        if (treePts) {
+            for (var i = 0; i < treePts.length; i++) {
+                var treePt = treePts[i];
+                treeBlocking = self.tree_state[treePt.key] && self.tree_elevations[treePt.key] > self.elevation;
+                if (treeBlocking) break;
+            }
         }
         if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
@@ -223,9 +229,13 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
         treeBlocking = false;
         
     if (bCheckTreeState) {
-        var treePt = this.tree_relations[key];
-        if (treePt) {
-            treeBlocking = this.tree_state[treePt.key];
+        var treePts = this.tree_relations[key];
+        if (treePts) {
+            for (var i = 0; i < treePts.length; i++) {
+                var treePt = treePts[i];
+                treeBlocking = this.tree_state[treePt.key];
+                if (treeBlocking) break;
+            }
         }
     }
     
@@ -237,23 +247,26 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
     var key = xy2key(x, y);
     var isTree = !!this.tree_relations[key];
     if (isTree) {
-        var pt = this.tree_relations[key];
-        this.tree_state[pt.key] = !this.tree_state[pt.key];
-        
-        this.elevationValues.forEach(function (elevation) {
-            if (elevation < self.tree_elevations[pt.key]) {
-                if (self.tree_state[pt.key]) {
-                    self.tree_blocks[pt.key].forEach(function (ptB) {
-                        self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
-                    });
+        var treePts = this.tree_relations[key];
+        for (var i = 0; i < treePts.length; i++) {
+            var pt = treePts[i];
+            this.tree_state[pt.key] = !this.tree_state[pt.key];
+            
+            this.elevationValues.forEach(function (elevation) {
+                if (elevation < self.tree_elevations[pt.key]) {
+                    if (self.tree_state[pt.key]) {
+                        self.tree_blocks[pt.key].forEach(function (ptB) {
+                            self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
+                        });
+                    }
+                    else {
+                        self.tree_blocks[pt.key].forEach(function (ptB) {
+                            delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
+                        });
+                    }
                 }
-                else {
-                    self.tree_blocks[pt.key].forEach(function (ptB) {
-                        delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
-                    });
-                }
-            }
-        });
+            });
+        }
     }
 
     return isTree;

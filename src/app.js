@@ -64,7 +64,13 @@ function App(mapImageDataPath) {
         for (var k in vs.tree_relations) {
             var pt = vs.key2pt(k);
             pt = vs.GridXYtoImageXY(pt.x, pt.y);
-            var c = vs.tree_state[vs.tree_relations[k].key] ? COLOR_TREE : COLOR_STUMP;
+            var treePts = vs.tree_relations[k];
+            var c = COLOR_STUMP;
+            for (var i = 0; i < treePts.length; i++) {
+                var treePt = treePts[i];
+                c = vs.tree_state[treePt.key] ? COLOR_TREE : COLOR_STUMP;
+                if (c === COLOR_TREE) break;
+            }
             treeCtx.fillStyle = "rgb("+c.join(",")+")";
             treeCtx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }

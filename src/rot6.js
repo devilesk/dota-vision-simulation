@@ -209,23 +209,69 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cy = neighbors[i][1];
             var key = cx+","+cy;
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
-            obstacleType = this.walls[key];
+            obstacleTypes = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
             // if (key == "150,161") //console.log(key, obstacleType);
             // if (key == "151,160") //console.log(key, obstacleType);
-            if (obstacleType && obstacleType[0] == 'tree') {
-                cx2 = obstacleType[1];
-                cy2 = obstacleType[2];
-                radius = obstacleType[3];
+            if (obstacleTypes) {
+                for (var j = 0; j < obstacleTypes.length; j++) {
+                    var obstacleType = obstacleTypes[j];
+                    cx2 = obstacleType[1];
+                    cy2 = obstacleType[2];
+                    radius = obstacleType[3];
+                    
+                    dx = cx2 - x;
+                    dy = cy2 - y;
+                    dd = Math.sqrt(dx * dx + dy * dy);
+                    if (dd > 1/2) {
+                        a = Math.asin(radius / dd);
+                        b = Math.atan2(dy, dx),
+                        A1 = normalize(b - a),
+                        A2 = normalize(b + a);
+                        blocks = !this._lightPasses(cx, cy);
+                        
+                        dx1 = cx - x;
+                        dy1 = cy - y;
+                        dd1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+                        if (dd1 < dd) {
+                            trees[obstacleType[1]+","+obstacleType[2]] = [obstacleType[1], obstacleType[2]];
+                        }
+                        
+                        dx = cx - x;
+                        dy = cy - y;
+                        dd = Math.sqrt(dx * dx + dy * dy);
+                        a = Math.asin(radius / dd);
+                        b = Math.atan2(dy, dx),
+                        A1 = normalize(b - a),
+                        A2 = normalize(b + a);
+                        visibility = this._checkVisibility(b, A1, A2, false, SHADOWS);
+                    }
+                }
+                if (visibility) { callback(cx, cy, r, visibility); }
             }
             else {
                 cx2 = cx;
                 cy2 = cy;
                 radius = Math.SQRT2 / 2;
+                
+                dx = cx2 - x;
+                dy = cy2 - y;
+                dd = Math.sqrt(dx * dx + dy * dy);
+                if (dd > 1/2) {
+                    a = Math.asin(radius / dd);
+                    b = Math.atan2(dy, dx),
+                    A1 = normalize(b - a),
+                    A2 = normalize(b + a);
+                    blocks = !this._lightPasses(cx, cy);
+                    
+                    visibility = this._checkVisibility(b, A1, A2, blocks, SHADOWS);
+                    if (visibility) { callback(cx, cy, r, visibility); }
+                    if (this.done) return;
+                }
             }
             
-            dx = cx2 - x;
+            /*dx = cx2 - x;
             dy = cy2 - y;
             dd = Math.sqrt(dx * dx + dy * dy);
             if (dd > 1/2) {
@@ -259,7 +305,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
                     if (visibility) { callback(cx, cy, r, visibility); }
                     if (this.done) return;
                 }
-            }
+            }*/
 
 		} /* for all cells in this ring */
         
