@@ -52,6 +52,7 @@ function App(mapImageDataPath) {
         COLOR_LIT_STUMP = [200, 200, 0],
         COLOR_INVALID = [255, 0, 0],
         COLOR_GRIDNAV = [0, 0, 0],
+        COLOR_NO_WARDS = [200, 0,200],
         COLOR_FOW_BLOCKER = [0,200,200],
         COLOR_WALL = [255,255,255],
         debug = false;
@@ -80,14 +81,14 @@ function App(mapImageDataPath) {
             backgroundCtx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }
         
-        for (var k in vs.ent_fow_blocker_node) {
+        for (var k in vs.tools_no_wards) {
             var pt = vs.key2pt(k);
             pt = vs.GridXYtoImageXY(pt.x, pt.y);
-            backgroundCtx.fillStyle = "rgb("+COLOR_FOW_BLOCKER.join(",")+")";
+            backgroundCtx.fillStyle = "rgb("+COLOR_NO_WARDS.join(",")+")";
             backgroundCtx.fillRect(pt.x*CELL[0], pt.y*CELL[1], CELL[0], CELL[1]);
         }
         
-        for (var k in vs.tools_no_wards) {
+        for (var k in vs.ent_fow_blocker_node) {
             var pt = vs.key2pt(k);
             pt = vs.GridXYtoImageXY(pt.x, pt.y);
             backgroundCtx.fillStyle = "rgb("+COLOR_FOW_BLOCKER.join(",")+")";
@@ -955,7 +956,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.tools_no_wards) && !(key in self.treeWalls[self.elevation]) ;
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation]) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
