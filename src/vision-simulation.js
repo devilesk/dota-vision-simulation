@@ -254,14 +254,16 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
             
             this.elevationValues.forEach(function (elevation) {
                 if (elevation < self.tree_elevations[pt.key]) {
+                    self.tree_blocks[pt.key].forEach(function (ptB) {
+                        for (var j = self.treeWalls[elevation][ptB.key].length - 1; j >= 0; j--) {
+                            if (pt.x == self.treeWalls[elevation][ptB.key][j][1] && pt.y == self.treeWalls[elevation][ptB.key][j][2]) {
+                                self.treeWalls[elevation][ptB.key].splice(j, 1);
+                            }
+                        }
+                    });
                     if (self.tree_state[pt.key]) {
                         self.tree_blocks[pt.key].forEach(function (ptB) {
-                            self.treeWalls[elevation][ptB.x + "," + ptB.y] = ['tree', pt.x, pt.y, Math.SQRT2];
-                        });
-                    }
-                    else {
-                        self.tree_blocks[pt.key].forEach(function (ptB) {
-                            delete self.treeWalls[elevation][ptB.x + "," + ptB.y];
+                            self.treeWalls[elevation][ptB.key] = (self.treeWalls[elevation][ptB.key] || []).concat([['tree', pt.x, pt.y, Math.SQRT2]]);
                         });
                     }
                 }
