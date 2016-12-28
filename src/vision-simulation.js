@@ -190,7 +190,6 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
-    this.fov.tree_state = this.tree_state;
 }
 VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     var self = this,
@@ -219,7 +218,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
                 if (treeBlocking) break;
             }
         }
-        if (vis == true && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
+        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
         }
     });
@@ -240,7 +239,7 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
         }
     }
     
-    return x>= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight && (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
+    return x >= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight && (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {
@@ -267,9 +266,6 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
                             self.treeWalls[elevation][ptB.key] = (self.treeWalls[elevation][ptB.key] || []).concat([['tree', pt.x, pt.y, Math.SQRT2]]);
                         });
                     }
-                    self.tree_blocks[pt.key].forEach(function (ptB) {
-                       console.log('remaining walls', self.treeWalls[elevation][ptB.key]); 
-                    });
                 }
             });
         }
