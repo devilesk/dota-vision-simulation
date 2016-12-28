@@ -197,7 +197,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
         dx, dy, dd, a, b, radius,
         cx2, cy2, dd1,
         obstacleType;
-
+    var self = this;
 	/* analyze surrounding cells in concentric rings, starting from the center */
 	for (var r=1; r<=R; r++) {
         ////console.log('ring', r);
@@ -209,12 +209,16 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cy = neighbors[i][1];
             var key = cx+","+cy;
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
-            obstacleTypes = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
             // if (key == "150,161") //console.log(key, obstacleType);
-            // if (key == "151,160") //console.log(key, obstacleType);
-            if (obstacleTypes) {
+            var obstacleTypes = null;
+            if (this.walls[key]) {
+                obstacleTypes = this.walls[key].filter(function (wall) {
+                   return self.tree_state[wall[1]+","+wall[2]];
+                });
+            }
+            if (obstacleTypes && obstacleTypes.length) {
                 for (var j = 0; j < obstacleTypes.length; j++) {
                     var obstacleType = obstacleTypes[j];
                     cx2 = obstacleType[1];
@@ -246,6 +250,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
                         A1 = normalize(b - a),
                         A2 = normalize(b + a);
                         visibility = this._checkVisibility(b, A1, A2, false, SHADOWS);
+                        if (!visibility) break;
                     }
                 }
                 if (visibility) { callback(cx, cy, r, visibility); }

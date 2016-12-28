@@ -186,10 +186,11 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation]) ;
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation] && self.treeWalls[self.elevation][key].length > 0) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
+    this.fov.tree_state = this.tree_state;
 }
 VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     var self = this,
@@ -218,7 +219,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
                 if (treeBlocking) break;
             }
         }
-        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
+        if (vis == true && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
         }
     });
@@ -266,6 +267,9 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
                             self.treeWalls[elevation][ptB.key] = (self.treeWalls[elevation][ptB.key] || []).concat([['tree', pt.x, pt.y, Math.SQRT2]]);
                         });
                     }
+                    self.tree_blocks[pt.key].forEach(function (ptB) {
+                       console.log('remaining walls', self.treeWalls[elevation][ptB.key]); 
+                    });
                 }
             });
         }

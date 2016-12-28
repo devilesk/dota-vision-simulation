@@ -60,8 +60,6 @@ var FlateStream = require('./zlib');
   var PNG;
 
   PNG = (function() {
-    var APNG_BLEND_OP_OVER, APNG_BLEND_OP_SOURCE, APNG_DISPOSE_OP_BACKGROUND, APNG_DISPOSE_OP_NONE, APNG_DISPOSE_OP_PREVIOUS, makeImage, scratchCanvas, scratchCtx;
-
     PNG.load = function(url, canvas, callback) {
       var xhr,
         _this = this;
@@ -83,16 +81,6 @@ var FlateStream = require('./zlib');
       return xhr.send(null);
     };
 
-    APNG_DISPOSE_OP_NONE = 0;
-
-    APNG_DISPOSE_OP_BACKGROUND = 1;
-
-    APNG_DISPOSE_OP_PREVIOUS = 2;
-
-    APNG_BLEND_OP_SOURCE = 0;
-
-    APNG_BLEND_OP_OVER = 1;
-
     function PNG(data) {
       var chunkSize, colors, delayDen, delayNum, frame, i, index, key, section, short, text, _i, _j, _ref;
       this.data = data;
@@ -100,7 +88,6 @@ var FlateStream = require('./zlib');
       this.palette = [];
       this.imgData = [];
       this.transparency = {};
-      this.animation = null;
       this.text = {};
       frame = null;
       while (true) {
@@ -123,36 +110,10 @@ var FlateStream = require('./zlib');
             this.filterMethod = this.data[this.pos++];
             this.interlaceMethod = this.data[this.pos++];
             break;
-          case 'acTL':
-            this.animation = {
-              numFrames: this.readUInt32(),
-              numPlays: this.readUInt32() || Infinity,
-              frames: []
-            };
-            break;
           case 'PLTE':
             this.palette = this.read(chunkSize);
             break;
-          case 'fcTL':
-            if (frame) {
-              this.animation.frames.push(frame);
-            }
-            this.pos += 4;
-            frame = {
-              width: this.readUInt32(),
-              height: this.readUInt32(),
-              xOffset: this.readUInt32(),
-              yOffset: this.readUInt32()
-            };
-            delayNum = this.readUInt16();
-            delayDen = this.readUInt16() || 100;
-            frame.delay = 1000 * delayNum / delayDen;
-            frame.disposeOp = this.data[this.pos++];
-            frame.blendOp = this.data[this.pos++];
-            frame.data = [];
-            break;
           case 'IDAT':
-          case 'fdAT':
             if (section === 'fdAT') {
               this.pos += 4;
               chunkSize -= 4;
@@ -392,96 +353,14 @@ var FlateStream = require('./zlib');
       return ret;
     };
 
-    scratchCanvas = document.createElement('canvas');
-
-    scratchCtx = scratchCanvas.getContext('2d');
-
-    makeImage = function(imageData) {
-      var img;
-      scratchCtx.width = imageData.width;
-      scratchCtx.height = imageData.height;
-      scratchCtx.clearRect(0, 0, imageData.width, imageData.height);
-      scratchCtx.putImageData(imageData, 0, 0);
-      img = new Image;
-      img.src = scratchCanvas.toDataURL();
-      return img;
-    };
-
-    PNG.prototype.decodeFrames = function(ctx) {
-      var frame, i, imageData, pixels, _i, _len, _ref, _results;
-      if (!this.animation) {
-        return;
-      }
-      _ref = this.animation.frames;
-      _results = [];
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        frame = _ref[i];
-        imageData = ctx.createImageData(frame.width, frame.height);
-        pixels = this.decodePixels(new Uint8Array(frame.data));
-        this.copyToImageData(imageData, pixels);
-        frame.imageData = imageData;
-        _results.push(frame.image = makeImage(imageData));
-      }
-      return _results;
-    };
-
-    PNG.prototype.renderFrame = function(ctx, number) {
-      var frame, frames, prev;
-      frames = this.animation.frames;
-      frame = frames[number];
-      prev = frames[number - 1];
-      if (number === 0) {
-        ctx.clearRect(0, 0, this.width, this.height);
-      }
-      if ((prev != null ? prev.disposeOp : void 0) === APNG_DISPOSE_OP_BACKGROUND) {
-        ctx.clearRect(prev.xOffset, prev.yOffset, prev.width, prev.height);
-      } else if ((prev != null ? prev.disposeOp : void 0) === APNG_DISPOSE_OP_PREVIOUS) {
-        ctx.putImageData(prev.imageData, prev.xOffset, prev.yOffset);
-      }
-      if (frame.blendOp === APNG_BLEND_OP_SOURCE) {
-        ctx.clearRect(frame.xOffset, frame.yOffset, frame.width, frame.height);
-      }
-      return ctx.drawImage(frame.image, frame.xOffset, frame.yOffset);
-    };
-
-    PNG.prototype.animate = function(ctx) {
-      var doFrame, frameNumber, frames, numFrames, numPlays, _ref,
-        _this = this;
-      frameNumber = 0;
-      _ref = this.animation, numFrames = _ref.numFrames, frames = _ref.frames, numPlays = _ref.numPlays;
-      return (doFrame = function() {
-        var f, frame;
-        f = frameNumber++ % numFrames;
-        frame = frames[f];
-        _this.renderFrame(ctx, f);
-        if (numFrames > 1 && frameNumber / numFrames < numPlays) {
-          return _this.animation._timeout = setTimeout(doFrame, frame.delay);
-        }
-      })();
-    };
-
-    PNG.prototype.stopAnimation = function() {
-      var _ref;
-      return clearTimeout((_ref = this.animation) != null ? _ref._timeout : void 0);
-    };
-
     PNG.prototype.render = function(canvas) {
       var ctx, data;
-      if (canvas._png) {
-        canvas._png.stopAnimation();
-      }
-      canvas._png = this;
       canvas.width = this.width;
       canvas.height = this.height;
       ctx = canvas.getContext("2d");
-      if (this.animation) {
-        this.decodeFrames(ctx);
-        return this.animate(ctx);
-      } else {
-        data = ctx.createImageData(this.width, this.height);
-        this.copyToImageData(data, this.decodePixels());
-        return ctx.putImageData(data, 0, 0);
-      }
+      data = ctx.createImageData(this.width, this.height);
+      this.copyToImageData(data, this.decodePixels());
+      return ctx.putImageData(data, 0, 0);
     };
 
     return PNG;
@@ -1336,7 +1215,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
         dx, dy, dd, a, b, radius,
         cx2, cy2, dd1,
         obstacleType;
-
+    var self = this;
 	/* analyze surrounding cells in concentric rings, starting from the center */
 	for (var r=1; r<=R; r++) {
         ////console.log('ring', r);
@@ -1348,12 +1227,16 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cy = neighbors[i][1];
             var key = cx+","+cy;
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
-            obstacleTypes = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
             // if (key == "150,161") //console.log(key, obstacleType);
-            // if (key == "151,160") //console.log(key, obstacleType);
-            if (obstacleTypes) {
+            var obstacleTypes = null;
+            if (this.walls[key]) {
+                obstacleTypes = this.walls[key].filter(function (wall) {
+                   return self.tree_state[wall[1]+","+wall[2]];
+                });
+            }
+            if (obstacleTypes && obstacleTypes.length) {
                 for (var j = 0; j < obstacleTypes.length; j++) {
                     var obstacleType = obstacleTypes[j];
                     cx2 = obstacleType[1];
@@ -1385,6 +1268,7 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
                         A1 = normalize(b - a),
                         A2 = normalize(b + a);
                         visibility = this._checkVisibility(b, A1, A2, false, SHADOWS);
+                        if (!visibility) break;
                     }
                 }
                 if (visibility) { callback(cx, cy, r, visibility); }
@@ -1880,10 +1764,11 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation]) ;
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation] && self.treeWalls[self.elevation][key].length > 0) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
+    this.fov.tree_state = this.tree_state;
 }
 VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
     var self = this,
@@ -1912,7 +1797,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
                 if (treeBlocking) break;
             }
         }
-        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
+        if (vis == true && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
             self.lights[key] = 255;
         }
     });
@@ -1960,6 +1845,9 @@ VisionSimulation.prototype.toggleTree = function (x, y) {
                             self.treeWalls[elevation][ptB.key] = (self.treeWalls[elevation][ptB.key] || []).concat([['tree', pt.x, pt.y, Math.SQRT2]]);
                         });
                     }
+                    self.tree_blocks[pt.key].forEach(function (ptB) {
+                       console.log('remaining walls', self.treeWalls[elevation][ptB.key]); 
+                    });
                 }
             });
         }
