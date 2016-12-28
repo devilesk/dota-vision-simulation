@@ -37,7 +37,7 @@ function App(mapImageDataPath) {
     }
 
     function drawBackground() {
-        backgroundCtx.drawImage(vs.imageHandler.image, 0, 0, vs.gridWidth, vs.gridHeight, 0, 0, CELL[0]*vs.gridWidth, CELL[1]*vs.gridHeight);
+        backgroundCtx.drawImage(vs.imageHandler.canvas, 0, 0, vs.gridWidth, vs.gridHeight, 0, 0, CELL[0]*vs.gridWidth, CELL[1]*vs.gridHeight);
         
         for (p in vs.gridnav) {
             var pt = vs.gridnav[p];

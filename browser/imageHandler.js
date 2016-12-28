@@ -1,19 +1,19 @@
+var PNG = require('png-js');
+
 function ImageHandler(imagePath) {
     this.imagePath = imagePath;
-    this.image = null;
+    self.canvas = null;
+    self.png = null;
 }
 ImageHandler.prototype.load = function (callback) {
     var self = this;
-    this.image = new Image();
-    this.image.src = this.imagePath;
-    this.image.onload = function () {
-        self.canvas = document.createElement("canvas");
-        self.canvas.width = self.image.width;
-        self.canvas.height = self.image.height;
+    var t1 = Date.now();
+    self.canvas = document.createElement("canvas");
+    PNG.load(this.imagePath, self.canvas, function(png) {
+        self.png = png;
         self.ctx = self.canvas.getContext("2d");
-        self.ctx.drawImage(self.image, 0, 0);
         callback();
-    }
+    });
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
     var imgData = this.ctx.getImageData(offset, 0, width, height);

@@ -30,6 +30,7 @@
     "imagemin": "^5.2.2",
     "imagemin-cli": "^3.0.0",
     "mocha": "^3.2.0",
+    "png-js": "^0.1.1",
     "preprocess": "^3.1.0",
     "replace": "^0.3.0",
     "uglify-js": "^2.7.5"
@@ -38,7 +39,8 @@
     "jimp": "^0.2.27"
   },
   "browser": {
-    "./src/imageHandler.js": "./browser/imageHandler.js"
+    "./src/imageHandler.js": "./browser/imageHandler.js",
+    "png-js": "./browser/png.js"
   },
   "directories": {
     "test": "test"
