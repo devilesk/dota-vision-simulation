@@ -225,6 +225,8 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
 }
 
 VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckToolsNoWards, bCheckTreeState) {
+    if (!this.ready) return false;
+    
     var key = xy2key(x, y),
         treeBlocking = false;
         
