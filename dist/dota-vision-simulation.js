@@ -1047,12 +1047,12 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 			cy = neighbors[i][1];
             var key = cx+","+cy;
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
-            obstacleTypes = this.walls[key];
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
             // if (key == "150,161") //console.log(key, obstacleType);
-            // if (key == "151,160") //console.log(key, obstacleType);
-            if (obstacleTypes) {
+            var obstacleTypes = obstacleTypes = this.walls[key];
+            if (obstacleTypes && obstacleTypes.length) {
+                var skipVisibility = false;
                 for (var j = 0; j < obstacleTypes.length; j++) {
                     var obstacleType = obstacleTypes[j];
                     cx2 = obstacleType[1];
@@ -1084,9 +1084,10 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
                         A1 = normalize(b - a),
                         A2 = normalize(b + a);
                         visibility = this._checkVisibility(b, A1, A2, false, SHADOWS);
+                        if (!visibility) skipVisibility = true;
                     }
                 }
-                if (visibility) { callback(cx, cy, r, visibility); }
+                if (visibility && !skipVisibility) { callback(cx, cy, r, visibility); }
             }
             else {
                 cx2 = cx;
@@ -1579,7 +1580,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
 
     this.lightPassesCallback = function (x, y) {
         var key = x + ',' + y;
-        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation]) ;
+        return !(key in self.elevationWalls[self.elevation]) && !(key in self.ent_fow_blocker_node) && !(key in self.treeWalls[self.elevation] && self.treeWalls[self.elevation][key].length > 0) ;
     }
     
     this.fov = new ROT.FOV.PreciseShadowcasting(this.lightPassesCallback, {topology:8});
@@ -1632,7 +1633,7 @@ VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckTool
         }
     }
     
-    return x>= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight && (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
+    return x >= 0 && x < this.gridWidth && y >= 0 && y < this.gridHeight && (!bCheckGridnav || !this.gridnav[key]) && (!bCheckToolsNoWards || !this.tools_no_wards[key]) && (!bCheckTreeState || !treeBlocking);
 }
 
 VisionSimulation.prototype.toggleTree = function (x, y) {
