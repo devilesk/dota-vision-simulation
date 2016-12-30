@@ -1,6 +1,6 @@
 {
   "name": "dota-vision-simulation",
-  "version": "0.14.0",
+  "version": "0.14.2",
   "description": "http://devilesk.com/dota2/apps/vision-simulation/",
   "main": "src/vision-simulation.js",
   "scripts": {
@@ -16,9 +16,12 @@
     "stage:rev": "node scripts/rev.js",
     "stage": "npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
-    "deploy": "npm run stage && npm run deploy:copy",
+    "deploy": "npm run stage && npm run deploy:copy && npm run git:deploy",
     "test": "mocha",
-    "postversion": "npm run browserify:prod && npm run uglify:prod"
+    "git:dist": "git add . && git commit -m \"update dist\"",
+    "git:deploy": "git add . && git commit -m \"deploy\"",
+    "preversion": "npm run browserify:prod && npm run uglify:prod && npm run git:dist",
+    "postversion": "npm publish"
   },
   "author": "devilesk <devilesk@gmail.com> (http://devilesk.com)",
   "license": "ISC",
