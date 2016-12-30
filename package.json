@@ -19,7 +19,7 @@
     "deploy": "npm run stage && npm run deploy:copy && npm run git:deploy",
     "test": "mocha",
     "git:dist": "git add . && git commit -m \"update dist\"",
-    "git:deploy": "git add . && git commit -m \"deploy\"",
+    "git:deploy": "git add -A && git commit -m \"deploy\"",
     "preversion": "npm run browserify:prod && npm run uglify:prod && npm run git:dist",
     "postversion": "npm publish"
   },
