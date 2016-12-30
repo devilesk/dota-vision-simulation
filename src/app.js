@@ -146,6 +146,7 @@ function App(mapImageDataPath) {
             
             var t1 = Date.now();
             vs.updateVisibility(coords.x, coords.y);
+            document.querySelector("#visibility-area").innerHTML = (vs.lightArea / vs.area * 100).toFixed(2) + '%';
             var t2 = Date.now();
             document.querySelector("#fov").innerHTML = t2-t1;
             

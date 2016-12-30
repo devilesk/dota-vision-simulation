@@ -193,21 +193,26 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 	/* list of all shadows */
 	var SHADOWS = [];
 	var trees = {};
-	var cx, cy, blocks, A1, A2, visibility,
+	var totalNeighborCount = 1;
+    var cx, cy, blocks, A1, A2, visibility,
         dx, dy, dd, a, b, radius,
         cx2, cy2, dd1,
         obstacleType;
 
 	/* analyze surrounding cells in concentric rings, starting from the center */
 	for (var r=1; r<=R; r++) {
-        ////console.log('ring', r);
 		var neighbors = this._getCircle(x, y, r);
 		var neighborCount = neighbors.length;
+        totalNeighborCount += neighborCount;
         trees = {};
 		for (var i=0;i<neighborCount;i++) {
 			cx = neighbors[i][0];
 			cy = neighbors[i][1];
             var key = cx+","+cy;
+            if ((x-cx)*(x-cx) + (y-cy)*(y-cy) >= R * R) {
+                totalNeighborCount--;
+                continue;
+            }
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
@@ -329,6 +334,8 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
             }
         }
 	} /* for all rings */
+    
+    return totalNeighborCount;
 }
 
 /**

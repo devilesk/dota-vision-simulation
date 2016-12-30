@@ -104,6 +104,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.gridWidth = this.worldWidth / 64 + 1;
     this.gridHeight = this.worldHeight / 64 + 1;
     this.ready = false;
+    this.area = 0;
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     var t1 = Date.now();
@@ -206,7 +207,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
 
     this.fov.walls = this.walls;
     this.lights = {};
-    this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
+    this.area = this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
         if (!self.elevationGrid[key]) return;
         var treePts = self.tree_relations[key];
@@ -218,10 +219,11 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
                 if (treeBlocking) break;
             }
         }
-        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
+        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking) {
             self.lights[key] = 255;
         }
     });
+    this.lightArea = Object.keys(this.lights).length;
 }
 
 VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckToolsNoWards, bCheckTreeState) {

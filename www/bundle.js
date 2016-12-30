@@ -984,6 +984,7 @@ function App(mapImageDataPath) {
             
             var t1 = Date.now();
             vs.updateVisibility(coords.x, coords.y);
+            document.querySelector("#visibility-area").innerHTML = (vs.lightArea / vs.area * 100).toFixed(2) + '%';
             var t2 = Date.now();
             document.querySelector("#fov").innerHTML = t2-t1;
             
@@ -1211,21 +1212,26 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
 	/* list of all shadows */
 	var SHADOWS = [];
 	var trees = {};
-	var cx, cy, blocks, A1, A2, visibility,
+	var totalNeighborCount = 1;
+    var cx, cy, blocks, A1, A2, visibility,
         dx, dy, dd, a, b, radius,
         cx2, cy2, dd1,
         obstacleType;
 
 	/* analyze surrounding cells in concentric rings, starting from the center */
 	for (var r=1; r<=R; r++) {
-        ////console.log('ring', r);
 		var neighbors = this._getCircle(x, y, r);
 		var neighborCount = neighbors.length;
+        totalNeighborCount += neighborCount;
         trees = {};
 		for (var i=0;i<neighborCount;i++) {
 			cx = neighbors[i][0];
 			cy = neighbors[i][1];
             var key = cx+","+cy;
+            if ((x-cx)*(x-cx) + (y-cy)*(y-cy) >= R * R) {
+                totalNeighborCount--;
+                continue;
+            }
             //if (key == "44,102") //console.log('KEY', key, !this._lightPasses(cx, cy));
             // if (key == "150,160") //console.log(key, obstacleType);
             // if (key == "151,161") //console.log(key, obstacleType);
@@ -1347,6 +1353,8 @@ ROT.FOV.PreciseShadowcasting.prototype.compute = function(x, y, R, callback) {
             }
         }
 	} /* for all rings */
+    
+    return totalNeighborCount;
 }
 
 /**
@@ -1678,6 +1686,7 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     this.gridWidth = this.worldWidth / 64 + 1;
     this.gridHeight = this.worldHeight / 64 + 1;
     this.ready = false;
+    this.area = 0;
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     var t1 = Date.now();
@@ -1780,7 +1789,7 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
 
     this.fov.walls = this.walls;
     this.lights = {};
-    this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
+    this.area = this.fov.compute(gX, gY, radius, function(x2, y2, r, vis) {
         var key = xy2key(x2, y2);
         if (!self.elevationGrid[key]) return;
         var treePts = self.tree_relations[key];
@@ -1792,13 +1801,16 @@ VisionSimulation.prototype.updateVisibility = function (gX, gY, radius) {
                 if (treeBlocking) break;
             }
         }
-        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking && (gX-x2)*(gX-x2) + (gY-y2)*(gY-y2) < radius * radius) {
+        if (vis == 1 && !self.ent_fow_blocker_node[key] && !treeBlocking) {
             self.lights[key] = 255;
         }
     });
+    this.lightArea = Object.keys(this.lights).length;
 }
 
 VisionSimulation.prototype.isValidXY = function (x, y, bCheckGridnav, bCheckToolsNoWards, bCheckTreeState) {
+    if (!this.ready) return false;
+    
     var key = xy2key(x, y),
         treeBlocking = false;
         
