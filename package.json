@@ -12,7 +12,7 @@
     "build:js": "npm run browserify:demo && npm run uglify:demo",
     "build:img": "imagemin www/map_data.png --out-dir=build",
     "build:html": "NODE_ENV=prod node scripts/preprocess.js",
-    "build": "npm run clean:build && npm run build:js && npm run build:html",
+    "build": "npm run clean:build && npm run build:js && cp www/map_data.png build/ && npm run build:html",
     "stage:rev": "node scripts/rev.js",
     "stage": "npm run build && npm run stage:rev",
     "deploy:copy": "node scripts/deploy.js",
