@@ -108,35 +108,37 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     var t1 = Date.now();
-    this.imageHandler.load(function () {
-        var t2 = Date.now();
-        console.log('image load', t2 - t1 + 'ms');
-        self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
-        parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
-        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
-        var t3 = Date.now();
-        console.log('image process', t3 - t2 + 'ms');
-        self.elevationValues.forEach(function (elevation) {
-            //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
-            self.treeWalls[elevation] = {};
-            setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
-        });
-        var t4 = Date.now();
-        console.log('walls generation', t4 - t3 + 'ms');
-        for (var i = 0; i < self.gridWidth; i++) {
-            self.grid[i] = [];
-            for (var j = 0; j < self.gridHeight; j++) {
-                var pt = xy2pt(i, j);
-                key2pt_cache[pt.key] = pt;
-                self.grid[i].push(pt);
+    this.imageHandler.load(function (err) {
+        if (!err) {
+            var t2 = Date.now();
+            console.log('image load', t2 - t1 + 'ms');
+            self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
+            parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+            self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+            var t3 = Date.now();
+            console.log('image process', t3 - t2 + 'ms');
+            self.elevationValues.forEach(function (elevation) {
+                //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+                self.treeWalls[elevation] = {};
+                setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
+            });
+            var t4 = Date.now();
+            console.log('walls generation', t4 - t3 + 'ms');
+            for (var i = 0; i < self.gridWidth; i++) {
+                self.grid[i] = [];
+                for (var j = 0; j < self.gridHeight; j++) {
+                    var pt = xy2pt(i, j);
+                    key2pt_cache[pt.key] = pt;
+                    self.grid[i].push(pt);
+                }
             }
+            var t5 = Date.now();
+            console.log('cache prime', t5 - t4 + 'ms');
+            self.ready = true;
         }
-        var t5 = Date.now();
-        console.log('cache prime', t5 - t4 + 'ms');
-        self.ready = true;
-        onReady();
+        onReady(err);
     });
 
     function parseImage(imageHandler, offset, width, height, pixelHandler) {

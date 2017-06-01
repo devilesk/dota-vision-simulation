@@ -9,10 +9,10 @@ ImageHandler.prototype.load = function (callback) {
     var self = this;
     var t1 = Date.now();
     self.canvas = document.createElement("canvas");
-    PNG.load(this.imagePath, self.canvas, function(png) {
+    PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
         self.ctx = self.canvas.getContext("2d");
-        callback();
+        callback(err);
     });
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {

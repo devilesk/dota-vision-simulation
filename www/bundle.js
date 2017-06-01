@@ -10,10 +10,10 @@ ImageHandler.prototype.load = function (callback) {
     var self = this;
     var t1 = Date.now();
     self.canvas = document.createElement("canvas");
-    PNG.load(this.imagePath, self.canvas, function(png) {
+    PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
         self.ctx = self.canvas.getContext("2d");
-        callback();
+        callback(err);
     });
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
@@ -70,13 +70,23 @@ var FlateStream = require('./zlib');
       xhr.open("GET", url, true);
       xhr.responseType = "arraybuffer";
       xhr.onload = function() {
-        var data, png;
-        data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
-        png = new PNG(data);
-        if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
-          png.render(canvas);
+        var err, data, png;
+        if (xhr.status == 200) {
+          data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
+          try {
+            png = new PNG(data);
+            if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
+              png.render(canvas);
+            }
+          }
+          catch (e) {
+            err = e;
+          }
         }
-        return typeof callback === "function" ? callback(png) : void 0;
+        else {
+          err = new Error("Image request failed " + xhr.status);
+        }
+        return typeof callback === "function" ? callback(err, png) : void 0;
       };
       return xhr.send(null);
     };
@@ -952,7 +962,12 @@ function App(mapImageDataPath) {
         return vs.ImageXYtoGridXY(Math.floor(x/CELL[0]), Math.floor(y/CELL[1]));
     }
 
-    function onReady() {
+    function onReady(err) {
+        if (err) {
+            console.log(err);
+            alert(err);
+            return;
+        }
         resize();
         drawBackground();
         drawTrees();
@@ -1690,35 +1705,37 @@ function VisionSimulation(worlddata, mapDataImagePath, onReady, opts) {
     
     this.imageHandler = new ImageHandler(mapDataImagePath);
     var t1 = Date.now();
-    this.imageHandler.load(function () {
-        var t2 = Date.now();
-        console.log('image load', t2 - t1 + 'ms');
-        self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
-        self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
-        parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
-        self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
-        var t3 = Date.now();
-        console.log('image process', t3 - t2 + 'ms');
-        self.elevationValues.forEach(function (elevation) {
-            //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
-            self.treeWalls[elevation] = {};
-            setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
-        });
-        var t4 = Date.now();
-        console.log('walls generation', t4 - t3 + 'ms');
-        for (var i = 0; i < self.gridWidth; i++) {
-            self.grid[i] = [];
-            for (var j = 0; j < self.gridHeight; j++) {
-                var pt = xy2pt(i, j);
-                key2pt_cache[pt.key] = pt;
-                self.grid[i].push(pt);
+    this.imageHandler.load(function (err) {
+        if (!err) {
+            var t2 = Date.now();
+            console.log('image load', t2 - t1 + 'ms');
+            self.gridnav = parseImage(self.imageHandler, self.gridWidth * 2, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.ent_fow_blocker_node = parseImage(self.imageHandler, self.gridWidth * 3, self.gridWidth, self.gridHeight, blackPixelHandler);
+            self.tools_no_wards = parseImage(self.imageHandler, self.gridWidth * 4, self.gridWidth, self.gridHeight, blackPixelHandler);
+            parseImage(self.imageHandler, self.gridWidth, self.gridWidth, self.gridHeight, treeElevationPixelHandler);
+            self.elevationGrid = parseImage(self.imageHandler, 0, self.gridWidth, self.gridHeight, elevationPixelHandler);
+            var t3 = Date.now();
+            console.log('image process', t3 - t2 + 'ms');
+            self.elevationValues.forEach(function (elevation) {
+                //self.elevationWalls[elevation] = generateElevationWalls(self.elevationGrid, elevation);
+                self.treeWalls[elevation] = {};
+                setTreeWalls(self.treeWalls[elevation], elevation, self.tree, self.tree_elevations, self.tree_state, self.tree_blocks)
+            });
+            var t4 = Date.now();
+            console.log('walls generation', t4 - t3 + 'ms');
+            for (var i = 0; i < self.gridWidth; i++) {
+                self.grid[i] = [];
+                for (var j = 0; j < self.gridHeight; j++) {
+                    var pt = xy2pt(i, j);
+                    key2pt_cache[pt.key] = pt;
+                    self.grid[i].push(pt);
+                }
             }
+            var t5 = Date.now();
+            console.log('cache prime', t5 - t4 + 'ms');
+            self.ready = true;
         }
-        var t5 = Date.now();
-        console.log('cache prime', t5 - t4 + 'ms');
-        self.ready = true;
-        onReady();
+        onReady(err);
     });
 
     function parseImage(imageHandler, offset, width, height, pixelHandler) {

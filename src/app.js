@@ -114,7 +114,12 @@ function App(mapImageDataPath) {
         return vs.ImageXYtoGridXY(Math.floor(x/CELL[0]), Math.floor(y/CELL[1]));
     }
 
-    function onReady() {
+    function onReady(err) {
+        if (err) {
+            console.log(err);
+            alert(err);
+            return;
+        }
         resize();
         drawBackground();
         drawTrees();

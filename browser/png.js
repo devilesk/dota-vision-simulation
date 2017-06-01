@@ -35,13 +35,23 @@ var FlateStream = require('./zlib');
       xhr.open("GET", url, true);
       xhr.responseType = "arraybuffer";
       xhr.onload = function() {
-        var data, png;
-        data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
-        png = new PNG(data);
-        if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
-          png.render(canvas);
+        var err, data, png;
+        if (xhr.status == 200) {
+          data = new Uint8Array(xhr.response || xhr.mozResponseArrayBuffer);
+          try {
+            png = new PNG(data);
+            if (typeof (canvas != null ? canvas.getContext : void 0) === 'function') {
+              png.render(canvas);
+            }
+          }
+          catch (e) {
+            err = e;
+          }
         }
-        return typeof callback === "function" ? callback(png) : void 0;
+        else {
+          err = new Error("Image request failed " + xhr.status);
+        }
+        return typeof callback === "function" ? callback(err, png) : void 0;
       };
       return xhr.send(null);
     };

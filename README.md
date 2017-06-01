@@ -22,7 +22,7 @@ var vs = new VisionSimulation(worlddata, mapImageDataPath, onReadyCallback);
 
 `mapImageDataPath` - path to map data image, "www/map_data.png"
 
-`onReadyCallback` - callback executed when map data is loaded and vision simulation is ready.
+`onReadyCallback(err)` - callback executed when map data is loaded and vision simulation is ready. Returns an error object if an exception occurred.
 
 ### Methods
 
