@@ -1,6 +1,6 @@
 {
   "name": "dota-vision-simulation",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "http://devilesk.com/dota2/apps/vision-simulation/",
   "main": "src/vision-simulation.js",
   "scripts": {
