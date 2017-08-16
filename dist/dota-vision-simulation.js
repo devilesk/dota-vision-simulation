@@ -9,7 +9,13 @@ function ImageHandler(imagePath) {
 ImageHandler.prototype.load = function (callback) {
     var self = this;
     var t1 = Date.now();
-    self.canvas = document.createElement("canvas");
+    try {
+      self.canvas = document.createElement("canvas");
+    }
+    catch (e) {
+      callback(e);
+      return;
+    }
     PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
         self.ctx = self.canvas.getContext("2d");
