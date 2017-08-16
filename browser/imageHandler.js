@@ -9,11 +9,11 @@ ImageHandler.prototype.load = function (callback) {
     var self = this;
     var t1 = Date.now();
     try {
-      self.canvas = document.createElement("canvas");
+        self.canvas = document.createElement("canvas");
     }
     catch (e) {
-      callback(e);
-      return;
+        callback(e);
+        return;
     }
     PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
