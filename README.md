@@ -1,6 +1,4 @@
-#dota-vision-simulation
-
-http://devilesk.com/dota2/apps/vision-simulation/
+# dota-vision-simulation
 
 ## Example
 
@@ -13,18 +11,25 @@ See [dota-interactive-map](https://github.com/devilesk/dota-interactive-map) for
 ```javascript
 var VisionSimulation = require("dota-vision-simulation");
 var worlddata = require("dota-vision-simulation/src/worlddata.json");
+var options = {radius: 1600};
 
-
-var vs = new VisionSimulation(worlddata, mapImageDataPath, onReadyCallback);
+var vs = new VisionSimulation(worlddata, options);
+vs.initialize(mapImageDataPath, onReadyCallback);
 ```
 
 `worlddata` - world dimensions, {"worldMinX":-8288,"worldMaxX":8288,"worldMinY":-8288,"worldMaxY":8288}
 
-`mapImageDataPath` - path to map data image, "www/map_data.png"
+`options` - Optional settings object.
 
-`onReadyCallback(err)` - callback executed when map data is loaded and vision simulation is ready. Returns an error object if an exception occurred.
+* `radius` - Initial radius in grid tiles. Default: 1600 / 64
 
 ### Methods
+
+`initialize(mapImageDataPath, onReadyCallback)` - Starts the vision simulation.
+
+* `mapImageDataPath` - path to map data image, "www/map_data.png"
+
+* `onReadyCallback(err)` - callback executed when map data is loaded and vision simulation is ready. Returns an error object if an exception occurred.
 
 `updateVisibility(gX, gY, radius)` - Executes the FOV calculation and update the `lights` property on the VisionSimulation object. (gX, gY) is a grid coordinate representing a 64x64 tile in the 260x260 world grid. radius optional.
 

@@ -3,15 +3,20 @@ var Jimp = require("jimp");
 function ImageHandler(imagePath) {
     this.imagePath = imagePath;
     this.image = null;
+    this.enabled = true;
 }
 ImageHandler.prototype.load = function (callback) {
     var self = this;
     Jimp.read(this.imagePath).then(function (image) {
         self.image = image;
-        callback();
+        if (self.enabled) callback();
     }).catch(function (err) {
         console.log('error', err);
+        if (self.enabled) callback(err);
     });
+}
+ImageHandler.prototype.disable = function () {
+    this.enabled = false;
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
     this.image.scan(offset, 0, width, height, function (x, y, idx) {

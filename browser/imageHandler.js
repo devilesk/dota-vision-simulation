@@ -2,8 +2,9 @@ var PNG = require('png-js');
 
 function ImageHandler(imagePath) {
     this.imagePath = imagePath;
-    self.canvas = null;
-    self.png = null;
+    this.canvas = null;
+    this.png = null;
+    this.enabled = true;
 }
 ImageHandler.prototype.load = function (callback) {
     var self = this;
@@ -12,14 +13,17 @@ ImageHandler.prototype.load = function (callback) {
         self.canvas = document.createElement("canvas");
     }
     catch (e) {
-        callback(e);
+        if (self.enabled) callback(e);
         return;
     }
     PNG.load(this.imagePath, self.canvas, function(err, png) {
         self.png = png;
         self.ctx = self.canvas.getContext("2d");
-        callback(err);
+        if (self.enabled) callback(err);
     });
+}
+ImageHandler.prototype.disable = function () {
+    this.enabled = false;
 }
 ImageHandler.prototype.scan = function (offset, width, height, pixelHandler, grid) {
     var imgData = this.ctx.getImageData(offset, 0, width, height);

@@ -23,7 +23,10 @@ function App(mapImageDataPath) {
         debug = false;
         
             
-    var vs = new VisionSimulation(worlddata, mapImageDataPath, onReady);
+    var vs = new VisionSimulation(worlddata);
+    vs.initialize(mapImageDataPath, function () {console.log('ready 1');});
+    vs.initialize(mapImageDataPath, onReady);
+    
 
     function resize() {
         canvas.width = CELL[0]*vs.gridWidth;
